@@ -94,6 +94,9 @@ int main(int argc, char const* argv[])
 			}
 			continue;
 		}
+		else{
+			got_ack = false;
+		}
 	}
 	// closing the connected socket
 	close(client_fd);
