@@ -16,7 +16,12 @@
 #define PORT 8080
 
 using namespace std;
-regex ack_regex("Acknowledgement:[0-9]+");
+// regex ack_regex("Acknowledgement:[0-9]+");
+// regex ack_regex(":*");
+regex ack_regex("[\\S|\\s]+(Acknowledgement:[0-9]+)[\\s|\\S]+");
+
+#define gettime ((std::chrono::system_clock::now() - start).count()) 
+#define cout2 cout << gettime << " - "
 
 int seq_num_send;
 int PORT_S;
@@ -43,6 +48,8 @@ int get_seq_num(string packet) {
 
 int main(int argc, char const* argv[])
 {
+	auto start = std::chrono::system_clock::now();
+
 	PORT_S = stoi(argv[1]);
 	PORT_R = stoi(argv[2]);
 	RETRANSMIT_TIME = stoi(argv[3]);
@@ -65,6 +72,7 @@ int main(int argc, char const* argv[])
     }
  
     serv_addr.sin_family = AF_INET;
+    // serv_addr.sin_port = htons(PORT);
     serv_addr.sin_port = htons(PORT);
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
  
@@ -78,15 +86,22 @@ int main(int argc, char const* argv[])
 		packet = packets[seq_num_send - 1];
 		if(got_ack){	
 			send(sock, packet.c_str(), packet.length(), 0); 
+			cout2 << "send: " << packet.c_str() << endl;
 			signal(SIGALRM, &timeout);  // set a signal handler
 			ualarm(RETRANSMIT_TIME * 1e3, 0);
 		}
 		valread = read(sock, buffer, 1024);
-		if(regex_match(buffer, ack_regex)) {
+		cout2 << "recv: " << buffer << endl;
+		// if(regex_match(buffer, ack_regex)) {
+		if(buffer[0] == 'A') {
+			cout2 << "regex match" << endl;
 			int seq_num = get_seq_num(buffer);
+			// cout2 << "seq"
+			cout2 << "seq_num recvd: " << seq_num << endl;
 			if(seq_num == seq_num_send + 1){
 				seq_num_send += 1;
-				printf("%s\n", buffer);
+				// printf("%s\n", buffer);
+				// cout2 << buffer << endl;
 				got_ack = true;
 			}
 			else{

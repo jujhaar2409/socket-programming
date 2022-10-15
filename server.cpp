@@ -12,11 +12,16 @@
 #include <vector>
 #include <random>
 #include <regex>
-// #define PORT 8080
+#include <chrono>
+#define PORT 8080
 
 using namespace std;
 
-regex pkt_regex("Packet:[0-9]+");
+// regex pkt_regex("Packet:[0-9]+");
+regex pkt_regex("[\\S|\\s]+(Packet:[0-9]+)[\\s|\\S]+");
+
+#define gettime ((std::chrono::system_clock::now() - start).count()) 
+#define cout2 cout << gettime << " - "
 
 int seq_num_expect = 1;
 string generate_next_acknowledgement(int seq_num)
@@ -33,8 +38,9 @@ int get_seq_num(string packet) {
 
 int main(int argc, char const* argv[])
 {
+	auto start = std::chrono::system_clock::now();
 	// for (int i = 0; i < argc; i++) {
-	// 	cout << argv[i] << endl;
+	// 	cout2 << argv[i] << endl;
 	// }
 
 	int PORT_R = stoi(argv[1]);
@@ -66,7 +72,7 @@ int main(int argc, char const* argv[])
 	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT_S);
+	address.sin_port = htons(PORT);
 
 	// Forcefully attaching socket to the port 8080
 	if (bind(server_fd, (struct sockaddr*)&address,
@@ -90,22 +96,28 @@ int main(int argc, char const* argv[])
 
 	while (true) {
 		valread = read(new_socket, buffer, 1024);
-		if (regex_match(buffer, pkt_regex)) {
+		cout2 << "recv: " << buffer << endl;
+		// if (regex_match(buffer, pkt_regex)) {
+		if (buffer[0] == 'P') {
 			int seq_num = get_seq_num(buffer);
-			float r = (float)(rand() / RAND_MAX);
+			cout2 << "seq_num recvd: " << seq_num << endl;
+			float r = (float)rand() / (float)RAND_MAX;
+			// cout2 << "DROP randnum: " << r << endl;
 			bool drop = r < DROP_PROB;
 			if (seq_num == seq_num_expect && drop) {
+				cout2 << "<< DROP >>" << endl;
 				continue;
 			} else if (seq_num == seq_num_expect && !drop) {
+				cout2 << "<< send ack for NEW packet >>" << endl;
 				seq_num_expect += 1;
-				string acknowledgement = generate_next_acknowledgement(seq_num);
-				send(new_socket, acknowledgement.c_str(), acknowledgement.length(), 0);
 			} else if (seq_num != seq_num_expect) {
-				string acknowledgement = generate_next_acknowledgement(seq_num);
-				send(new_socket, acknowledgement.c_str(), acknowledgement.length(), 0);
+				cout2 << "<< send ack for CURRENT packet >>" << endl;
 			}
+			string acknowledgement = generate_next_acknowledgement(seq_num_expect);
+			send(new_socket, acknowledgement.c_str(), acknowledgement.length(), 0);
+			cout2 << "send: " << acknowledgement.c_str() << endl;
 		}
-		printf("%s\n", buffer);
+		// printf("%s\n", buffer);
 		// send(new_socket, hello, strlen(hello), 0);
 		// printf("Hello message sent\n");
 	}
