@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
-#include <regex>
+// #include <regex>
 #include <chrono>
 
 using std::chrono::system_clock;
@@ -19,7 +19,7 @@ using std::chrono::duration;
 using std::chrono::milliseconds;
 using namespace std;
 
-regex pkt_regex("[\\S|\\s]+(Packet:[0-9]+)[\\s|\\S]+");
+// regex pkt_regex("[\\S|\\s]+(Packet:[0-9]+)[\\s|\\S]+");
 
 #define gettime duration_cast<milliseconds>(system_clock::now() - start).count()
 #define cout2 cout << gettime << " - "
@@ -28,7 +28,6 @@ int seq_num_expect = 1;
 
 string generate_next_acknowledgement(int seq_num)
 {
-	// seq_num += 1; 
 	return "Acknowledgement:" + to_string(seq_num);
 }
 
@@ -76,26 +75,28 @@ int main(int argc, char const* argv[])
 	while (true) {
 		valread = recvfrom(server_fd, (char *) buffer, 1024, MSG_WAITALL, (struct sockaddr *) &cli_address, &length);
 		buffer[valread] ='\0';
-		cout2 << "recv: " << buffer << endl;
-		// if (regex_match(buffer, pkt_regex)) {
-		if (buffer[0] == 'P') {
+		// cout2 << "recv: " << buffer << endl;
+		if(buffer[0] == 'P') {
 			int seq_num = get_seq_num(buffer);
-			cout2 << "seq_num recvd: " << seq_num << endl;
+			// cout2 << "seq_num recvd: " << seq_num << endl;
 			float r = (float)rand() / (float)RAND_MAX;
 			// cout2 << "DROP randnum: " << r << endl;
 			bool drop = r < DROP_PROB;
-			if (seq_num == seq_num_expect && drop) {
-				cout2 << "<< DROP >>" << endl;
-				continue;
-			} else if (seq_num == seq_num_expect && !drop) {
-				cout2 << "<< send ack for NEW packet >>" << endl;
+			if(seq_num == seq_num_expect && drop) {
+				cout<<"Dropped Packet"<<endl;
+				// cout2 << "<< DROP >>" << endl;
+			} 
+			else if(seq_num == seq_num_expect && !drop) {
+				// cout2 << "<< send ack for NEW packet >>" << endl;
 				seq_num_expect += 1;
-			} else if (seq_num != seq_num_expect) {
-				cout2 << "<< send ack for CURRENT packet >>" << endl;
+			} 
+			else if (seq_num != seq_num_expect) {
+				// cout2 << "<< send ack for CURRENT packet >>" << endl;
 			}
 			string acknowledgement = generate_next_acknowledgement(seq_num_expect);
 			sendto(server_fd, acknowledgement.c_str(), acknowledgement.length(), MSG_CONFIRM, (const struct sockaddr *) &cli_address, length);
-			cout2 << "send: " << acknowledgement.c_str() << endl;
+			// cout2 << "send: " << acknowledgement.c_str() << endl;
+			cout<< acknowledgement.c_str() <<endl;
 		}
 	}
 	shutdown(server_fd, SHUT_RDWR);
