@@ -1,24 +1,24 @@
 
 
-client : 
-	g++ -o client client.cpp
+r : 
+	g++ -o receiver receiver.cpp
 
-server : 
-	g++ -o server server.cpp
+s : 
+	g++ -o sender sender.cpp
 
-all : client server
+all : r s
 
 clean : 
-	rm -f client server
+	rm -f r s
 
 fresh : 
 	make clean 
 	make all
 
 # sender.c <SenderPort> <ReceiverPort> <RetransmissionTimer(s)> <NoOfPacketsToBeSent>
-sendr :
-	./client 8080 8082 2 10 > sender.txt
+se :
+	./sender 8080 8082 2 10 > sender.txt
 
 # receiver.c <ReceiverPort> <SenderPort> <PacketDropProbability>
-recvr :
-	./server 8082 8080 0.3 > receiver.txt
+re :
+	./receiver 8082 8080 0.3 > receiver.txt
