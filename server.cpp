@@ -29,7 +29,7 @@ int seq_num_expect = 1;
 string generate_next_acknowledgement(int seq_num)
 {
 	// seq_num += 1; 
-	return "Acknowledgement:" + to_string(2);
+	return "Acknowledgement:" + to_string(seq_num);
 }
 
 int get_seq_num(string packet) {
