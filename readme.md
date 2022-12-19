@@ -27,20 +27,20 @@ g++ -o sender.cpp
 - Network Delay can be simulated using the following command
 
   > ```bash
-  > sudo tc qdisc add dev lo root netem delay <delay_in_milliseconds>
+  > sudo tc qdisc add dev lo root netem delay DelayInMilliseconds
   > ```
   >
 - Open Two Different Terminals T1 and T2
 - In T1 enter
 
   > ```bash
-  > ./sender <SenderPort> <ReceiverPort> <RetransmissionTimer(s)> <NoOfPacketsToBeSent>
+  > ./sender SenderPort ReceiverPort RetransmissionTimer(s) NoOfPacketsToBeSent
   > ```
   >
 - In T2 enter
 
   > ```bash
-  > receiver.c <ReceiverPort> <SenderPort> <PacketDropProbability>
+  > ./receiver ReceiverPort SenderPort PacketDropProbability
   > ```
   >
 
